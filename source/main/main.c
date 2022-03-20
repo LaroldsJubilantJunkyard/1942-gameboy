@@ -2,7 +2,6 @@
 #include "common.h"
 
 
-<<<<<<< HEAD
 
 
 uint8_t Start_CopyrightGameState();uint8_t Update_CopyrightGameState();uint8_t End_CopyrightGameState();
@@ -63,81 +62,4 @@ void main(void){
 
         wait_vbl_done();
     }
-=======
-void SetupMenu();
-void SetupLevelSelect();
-void SetupGameplay();
-void SetupGameOver();
-
-void UpdateMenu();
-void UpdateLevelSelect();
-void UpdateGameplay();
-void UpdateGameOver();
-
-void main(){
-
-    SHOW_BKG;
-    SHOW_WIN;
-    SHOW_SPRITES;
-    SPRITES_8x16;
-
-    level=0;
-
-    fadeAmount=FADE_STEPS;
-    
-    UpdateColorPalettes();  
-
-    move_win(7,128);
-
-    // Fill our window with all white
-    VBK_REG=1;fill_win_rect(0,0,32,32,FONT_PALETTE_INDEX);
-    VBK_REG=0;fill_win_rect(0,0,32,32,0);
-
-    state=GAME_FIRST_LOAD;
-    nextState=MENU;
-
-    // Loop infinitely
-    while(TRUE){
-
-        counter++;
-
-        // Get the latest joypad state
-        // Save the current joypad state also
-        joypadPrevious=joypadCurrent;
-        joypadCurrent=joypad();
-
-        // If we are changing game states
-        if(state!=nextState){
-
-            state=nextState;
-
-            // Call our new states' setup logic
-            switch(state){
-                case MENU:SetupMenu();break;
-                case LEVEL_SELECT: SetupLevelSelect();break;
-                case GAMEPLAY:SetupGameplay();break;
-                case GAME_OVER:SetupGameOver();break;
-                default:break;
-            }
-
-            joypadCurrent=0;
-        }
-
-        // Call our game state's update logic
-        switch(state){
-
-            case MENU: UpdateMenu(); break;
-            case LEVEL_SELECT: UpdateLevelSelect(); break;
-            case GAMEPLAY: UpdateGameplay(); break;
-            case GAME_OVER: UpdateGameOver(); break;
-            default:break;
-        }
-
-
-        wait_vbl_done();
-
-
-    }
-
->>>>>>> f56a82457c94c5a3aa9ff8d031aa867438501f7a
 }

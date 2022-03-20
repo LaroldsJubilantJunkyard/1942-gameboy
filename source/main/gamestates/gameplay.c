@@ -1,296 +1,196 @@
 #include <gb/gb.h>
+#include <gb/metasprites.h>
 #include "common.h"
-#include "graphics/Dinosaur.h"
-#include "graphics/Cactus.h"
+#include "enemies.h"
+#include "bullets.h"
+#include "paths.h"
+#include "formation.h"
+#include "graphics/Font.h"
+#include "graphics/WaterBackground.h"
+#include "graphics/PlayerPlane.h"
+#include "graphics/Bullets.h"
+#include "graphics/SmallEnemyPlane.h"
+#include "graphics/MediumEnemyPlane.h"
+#include "graphics/PlayerPlaneMini.h"
 
 
-void TrySpawnNewCactus(){
-     if(activeCatii<2 && DIV_REG>5){
+uint8_t currentFormationIndex=0;
 
-        // Spawn at the right side of the screen
-        spawnX=160<<4;
+Formation* (*currentLevel)[];
 
-        for(uint8_t i=0;i<MAX_NUMBER_CACTUS;i++){
+const Formation* level1[]={
+   &TenGrey_TurnTowardsPlayer_Rightwards,
+   &TenGrey_TurnTowardsPlayer_Leftwards,
+   &TenGrey_TurnTowardsPlayer_Rightwards,
+   &TenGrey_TurnTowardsPlayer_Leftwards,   
+   &TenGrey_TurnTowardsPlayer_Rightwards,
+   0
+};
 
-            if(cactii[i].active){
 
-                // Get the maximum x of the active cactii
-                if(cactii[i].x>spawnX)spawnX=cactii[i].x;
-            }
-        }
+void HandleWindowCutoff(){
 
-        // Move back 64 pixels plus a random amount (max 128)
-        spawnX+=(64+(DIV_REG %(128)))<<4;
+    // If the gameboy is drawing line 0 (the top of the screen)
+    if(LYC_REG==0){
 
-        for(uint8_t i=0;i<MAX_NUMBER_CACTUS;i++){
+        // The interrupt should next trigger at line 63
+        LYC_REG=8;
 
-            if(!cactii[i].active){
+        HIDE_SPRITES;
+        HIDE_BKG;
+        SHOW_WIN;
 
-                cactii[i].active=TRUE;
-                cactii[i].x=spawnX;
-                cactii[i].type=DIV_REG>128?0:1;
-                cactii[i].done=FALSE;
-                activeCatii++;
-            }
-        }
+
+    // if the gameboy is drawing line 63
+    }else if(LYC_REG==8){
+
+        // The interrupt should next trigger at line 0
+        LYC_REG=0;
+
+        SHOW_SPRITES;
+        SHOW_BKG;
+        HIDE_WIN;
     }
-}
-
-void ResetGame(){
-    frame=0;
-    health=3;
-    started=FALSE;
-    jumpVelocity=0;
-    aboveGround=0;
-    moveSpeed=0;
-    damageBlinker=0;
-    activeCatii=0;
-    score=0;
-
-    // Hide all other sprites
-    for(uint8_t i=DINOSAUR_MAX_NUMBER_OF_SPRITES;i<MAX_HARDWARE_SPRITES;i++){
-        move_sprite(i,0,0);
-    }
-    
-    // Set all as inactive
-    for(uint8_t j=0;j<MAX_NUMBER_CACTUS;j++){
-        cactii[j].active=FALSE;
-    }   
 
 }
 
-void DrawScore(){
 
-    DrawNumber(0,0,score>>4,6);
-}
-void DrawLives(){
+const palette_color_t AllWhite[4] = {
+	RGB8(255,255, 255),RGB8(255,255, 255),RGB8(255,255, 255),RGB8(255,255, 255)
+};
 
-    DrawTextWithPalette(11,0,"Lives:");
-    DrawNumber(18,0,health,2);
-}
+uint8_t Start_GameplayGameState(){
 
+    SHOW_WIN;
+    SHOW_SPRITES;
 
-uint8_t CactusTryCollision(uint8_t i){
-
-    // If we are horizontally aligned
-     if(cactii[i].x>=(DINOSAUR_LEFT-16)<<4&&cactii[i].x<(DINOSAUR_LEFT+32)<<4){
-
-        // How high does the dinosaur need to jump (but negative)
-        int16_t clearHeight = cactii[i].type==0?-29 :-19;
-
-        // If the dinosaur isn't high enough
-        if((aboveGround>>4)>clearHeight){
-            
-            cactii[i].done=TRUE;
-
-            // A collision happened
-            return TRUE;
-
-        }
-    }
-    return FALSE;
-}
-
-uint8_t UpdateAllCactus(uint8_t startSprite){
-
-    uint8_t notHitPlayer=TRUE;
     
 
-    // For each cactii object
-    for(uint8_t i=0;i<MAX_NUMBER_CACTUS;i++){
+    // We're gonna use interrupts to achieve parallax scrolling
+    // Set the LYC register at 0, where we will start the scrolling logic
+    // From there we will move diferent chunks of the background different amounts
+    STAT_REG|=0x40; //enable LYC=LY interrupt
+    LYC_REG=0;
+    disable_interrupts();
+    add_LCD(HandleWindowCutoff);
+    set_interrupts(LCD_IFLAG|VBL_IFLAG);
+    enable_interrupts();
 
-        // If this cactii is active
-        if(cactii[i].active){
+    set_bkg_data(0,Font_TILE_COUNT,Font_tiles);
+    set_bkg_data(Font_TILE_COUNT,WaterBackground_TILE_COUNT,WaterBackground_tiles);
+    set_bkg_data(Font_TILE_COUNT+WaterBackground_TILE_COUNT,PlayerPlaneMini_TILE_COUNT,PlayerPlaneMini_tiles);
 
-
-            // Move left based on the player's move speed
-            cactii[i].x-=moveSpeed+(2<<4);
-
-
-            if(cactii[i].x<(DINOSAUR_LEFT-16)<<4&&!cactii[i].done){
-                score+=60;
-                DrawScore();
-                cactii[i].done=TRUE;
-            }
-
-            // If the cactus is off the right side of the screen
-            // Hide it's metasprite
-            if(cactii[i].x<=160<<4){
-
-                // Show at the proper position
-                startSprite+=move_metasprite(Cactus_metasprites[cactii[i].type+levels[level].obstacleOffset],Dinosaur_TILE_COUNT,startSprite,(cactii[i].x>>4)+8,108);
-
-            }
+    
+    set_bkg_palette(0,7,Font_palettes);
+    set_sprite_palette(0,5,PlayerPlane_palettes);
+    set_sprite_palette(7,1,AllWhite);
+    set_sprite_data(0,PlayerPlane_TILE_COUNT,PlayerPlane_tiles);
+    set_sprite_data(PlayerPlane_TILE_COUNT,SmallEnemyPlane_TILE_COUNT,SmallEnemyPlane_tiles);
+    set_sprite_data(SmallEnemyPlane_TILE_COUNT+PlayerPlane_TILE_COUNT,MediumEnemyPlane_TILE_COUNT,MediumEnemyPlane_tiles);
+    set_sprite_data(SmallEnemyPlane_TILE_COUNT+PlayerPlane_TILE_COUNT+MediumEnemyPlane_TILE_COUNT,Bullets_TILE_COUNT,Bullets_tiles);
 
 
-            if(cactii[i].x<-16<<4){
-                cactii[i].active=FALSE;
+    VBK_REG=1;set_bkg_tiles(0,0,32,32,WaterBackground_map_attributes);
+    VBK_REG=0;set_bkg_based_tiles(0,0,32,32,WaterBackground_map,Font_TILE_COUNT);
+
+
+
+    VBK_REG=1;fill_win_rect(0,0,32,32,0);
+    VBK_REG=1;fill_win_rect(0,0,32,32,0);
+    drawOnBackground=FALSE;DrawTextWithPalette(1,0,"1P",1);
+    drawOnBackground=FALSE;DrawNumber(3,0,123456,7);
+    
+    drawOnBackground=FALSE;DrawNumber(12,0,88,2);
+
+    // Show the mini player plane on the UI
+    VBK_REG=1;set_win_tile_xy(15,0,5);set_win_tile_xy(16,0,5);
+    VBK_REG=0;set_win_tile_xy(15,0,Font_TILE_COUNT+WaterBackground_TILE_COUNT);set_win_tile_xy(16,0,Font_TILE_COUNT+WaterBackground_TILE_COUNT+1);
+
+    // Show the retry icon
+    VBK_REG=1;set_win_tile_xy(11,0,1);
+    VBK_REG=0;set_win_tile_xy(11,0,41);
+
+    drawOnBackground=FALSE;DrawNumber(17,0,1,2);
+
+    playerPlaneX=80<<4;
+    playerPlaneY=80<<4;
+
+    SetupEnemies();
+    SetupBullets();
+
+    currentFormationIndex=0;
+    currentLevel=&level1;
+
+
+    return TRUE;
+}
+uint8_t previousMax=0;
+uint8_t Update_GameplayGameState(){
+
+    scroll_bkg(0,-1);
+
+    // Horizontal movement
+    if(joypadCurrent&J_LEFT)playerPlaneX-=10;
+    else if(joypadCurrent&J_RIGHT)playerPlaneX+=10;
+
+    // Vertical movement
+    if(joypadCurrent&J_UP)playerPlaneY-=10;
+    else if(joypadCurrent&J_DOWN)playerPlaneY+=10;
+
+    // If A was just pressed
+    if((joypadCurrent & J_A)&& !(joypadPrevious & J_A)){
+
+        // 12 (half playersprite width) 
+        // moving the bullet up one tile
+        SpawnBullet(playerPlaneX+(12<<4),playerPlaneY-(8<<4));
+    }
+
+    uint8_t maxSprite = move_metasprite(PlayerPlane_metasprites[0],0,0,(playerPlaneX>>4),(playerPlaneY>>4));
+    maxSprite=UpdateAllBullets(maxSprite);
+    maxSprite =UpdateAllEnemies(maxSprite);
+
+    uint8_t currentMax=maxSprite;
+
+    if(currentMax<previousMax){
+        
+        
+        for(maxSprite;maxSprite<previousMax;maxSprite++){
+            move_sprite(maxSprite,0,0);
+        }
+
+    }
+
+    previousMax=currentMax;
+
+    // If enemies on screen is zero
+    if(enemiesOnScreen==0){
+
+        //Get which formation to spawn enemies for
+        Formation* formation = (*currentLevel)[currentFormationIndex];
+
+        // If we are not on the last formation
+        if(formation!=0){
+
+            // Spawn an enemy for each path in theformation
+            for(uint8_t i=0;i<formation->count;i++){
+
+                uint8_t path = formation->paths[i].path;
                 
-                activeCatii--;
-            }else{
-               
-               if(CactusTryCollision(i)){
-                   notHitPlayer= FALSE;
-               }
+                // Spawn a new enemy
+                SpawnEnemy( formation->type, path, formation->paths[i].position, formation->paths[i].offsetX, formation->paths[i].offsetY, formation->paths[i].delay);
             }
-        }
-    }
 
-    for(uint8_t j=startSprite;j<40;j++){
-        move_sprite(j,0,0);
-    }
-    return notHitPlayer;
-}
-
-uint8_t UpdateDinosaur(){
-    uint8_t animateSpeed=5;
-
-    if(aboveGround>=0){
-        aboveGround=0;
-        jumpVelocity=0;
-
-        // Check the a button and the d-ad
-        uint8_t aButtonOrDPadUp = ((joypadCurrent & J_A)&& !(joypadPrevious & J_A)) || ((joypadCurrent & J_UP)&& !(joypadPrevious & J_UP));
-        uint8_t bButtonOrDPadDown = (joypadCurrent & J_B)||(joypadCurrent & J_DOWN);
-
-        uint8_t baseFrame=0;
-    
-        if(aButtonOrDPadUp){
-            jumpVelocity=-(45<<4);
+            // Move on to the next formation
+            currentFormationIndex++;
             
-            aboveGround+=jumpVelocity>>4;
-        }else if(bButtonOrDPadDown){
-            baseFrame=10;
         }
-        
-        if(joypadCurrent & J_RIGHT){
-            if(moveSpeed<32)moveSpeed+=2;
-            animateSpeed=10;
-        }else if(moveSpeed>0){
-            moveSpeed--;
-        }
-
-        frameCounter+=animateSpeed;
-        if(frameCounter>>4>=8)frameCounter=0;
-        frame=(frameCounter>>4)+baseFrame;
-    }else{
-
-        // Frame 9 is for faling
-        // Frame 8 is for rising
-        if(jumpVelocity>0)frame=9;
-        else frame=8;
-
-        // If we are holding A and rising
-        if(((joypadCurrent & J_A)||(joypadCurrent & J_UP))&&jumpVelocity<0){
-
-            // Apply a reduced gravity
-            jumpVelocity+=22;
-        }else{
-            
-            // Apply a normal gravity
-            jumpVelocity+=40;
-        }
-
-        // Apply velocity
-        aboveGround+=jumpVelocity>>4;
     }
 
-    if(damageBlinker>0)damageBlinker--;
 
-    if(damageBlinker>0&&(damageBlinker/5)%2==0){
-
-
-        move_metasprite(Dinosaur_metasprites[frame],0,0,180,180);
-
-        return 0;
-    }else{
-        
-        return move_metasprite(Dinosaur_metasprites[frame],0,0,DINOSAUR_LEFT,108+(aboveGround>>4));
-    }
+    return GAMEPLAY_GAMESTATE;
 }
-
-
-void UpdateGameplay(){
-    startSprite = UpdateDinosaur();
-    TrySpawnNewCactus();
-
-    score++;
-    DrawScore();
-
-    if(!UpdateAllCactus(startSprite)){
-
-        if(damageBlinker==0){
-            damageBlinker=100;
-            
-            if(health>0){
-                health--;
-                DrawLives();
-            }
-            else {
-                nextState=GAME_OVER;
-            }
-        }
-    }
-
-    // If the start button was just pressed
-    if((joypadCurrent & J_START)&& !(joypadPrevious & J_START)){
-
-        // Clear the windows top row
-        ClearWindowTopRow();
-        DrawTextWithPalette(5,0,"Game Paused");
-
-        joypadPrevious=J_START;
-
-        while(TRUE){
-
-            // If Select is pressed
-            if((joypadCurrent & J_SELECT)&& !(joypadPrevious & J_SELECT)){
-
-                // Were going back to the menu
-                nextState=MENU;
-
-                // Fade our the background sprites
-                FadeOut(FADE_BACKGROUND|FADE_SPRITES);
-
-                return;
-            }
-
-            // Wait until start is pressed again
-            if((joypadCurrent & J_START)&& !(joypadPrevious & J_START)){
-                break;
-            }
-
-            wait_vbl_done();
-
-            joypadPrevious=joypadCurrent;
-            joypadCurrent=joypad();
-        }
-
-        // Clear the windows top row
-        ClearWindowTopRow();
-
-        // Redraw the score
-        DrawLives();
-        DrawScore();
-
-    }
-
-    scroll_bkg((moveSpeed>>4)+2,0);
+uint8_t End_GameplayGameState(){
+    disable_interrupts();
+    STAT_REG=0;
+    return TRUE;
 }
-
-
-
-void SetupGameplay(){
-
-    // Populate vram with dinosaur and obstacles
-    set_sprite_data(0,Dinosaur_TILE_COUNT,Dinosaur_tiles);
-    set_sprite_data(Dinosaur_TILE_COUNT,Cactus_TILE_COUNT,Cactus_tiles);
-
-    // Reset our game stats
-    ResetGame();
-
-    // Draw our lives and score
-    DrawLives();
-    DrawScore();
-}
-

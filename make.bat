@@ -41,17 +41,9 @@ FOR /R "source/main/" %%X IN (*.c) DO (
 
 
 :: Compile a .gb file from the compiled .o files
-<<<<<<< HEAD
 %LCC_COMPILE_BASE% -Wm-yc -o dist/1942.gb !COMPILE_OBJECT_FILES!
-=======
-%LCC_COMPILE_BASE% -Wm-yc -o dist/DinosaurGame.gb !COMPILE_OBJECT_FILES!
->>>>>>> f56a82457c94c5a3aa9ff8d031aa867438501f7a
 
 endlocal
 
 :: Use the romusage.exe to show the size of the ROM and what makes it up
-<<<<<<< HEAD
 "lib/romusage" dist\1942.noi -a
-=======
-"lib/romusage" dist\DinosaurGame.noi -a
->>>>>>> f56a82457c94c5a3aa9ff8d031aa867438501f7a
