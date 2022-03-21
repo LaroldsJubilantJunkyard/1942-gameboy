@@ -1,6 +1,7 @@
 #include <gb/gb.h>
 #include "enemies.h"
 #include "paths.h"
+#include "formation.h"
 #include "bullets.h"
 #include "common.h"
 #include "graphics/PlayerPlane.h"
@@ -10,6 +11,10 @@
 EnemyPlane enemies[MAX_NUMBER_ENEMIES_ON_SCREEN];
 uint8_t enemiesOnScreen=0;
 uint8_t lastCheck=0;
+
+extern uint8_t currentFormationIndex;
+extern Formation* (*currentLevel)[];
+
 
 void SetupEnemies(){
     
@@ -159,8 +164,39 @@ uint8_t UpdateSingleEnemy(EnemyPlane* enemy,uint8_t startSprite){
 }
 
 
+void SpawnNextFormation(){
+    
+
+
+        //Get which formation to spawn enemies for
+        Formation* formation = (*currentLevel)[currentFormationIndex];
+
+        // If we are not on the last formation
+        if(formation!=0){
+
+            // Spawn an enemy for each path in theformation
+            for(uint8_t i=0;i<formation->count;i++){
+
+                uint8_t path = formation->paths[i].path;
+                
+                // Spawn a new enemy
+                SpawnEnemy( formation->type, path, formation->paths[i].position, formation->paths[i].offsetX, formation->paths[i].offsetY, formation->paths[i].delay);
+            }
+
+            // Move on to the next formation
+            currentFormationIndex++;
+            
+        }
+}
+
 uint8_t UpdateAllEnemies(uint8_t startingSprite){
 
+    // If enemies on screen is zero
+    if(enemiesOnScreen==0){
+
+        //Spawn the next formation
+        SpawnNextFormation();
+    }
     
     enemiesOnScreen=0;
     

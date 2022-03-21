@@ -111,7 +111,7 @@ uint8_t Start_StartScreenGameState(){
 uint8_t Update_StartScreenGameState(){
     
     scrollValue+=10;
-    if((joypadCurrent & J_A) ||(joypadCurrent& J_START))return MENUSCREEN_GAMESTATE;
+    if((joypadCurrent & J_A) ||(joypadCurrent& J_START))return NEXTLEVEL_GAMESTATE;
     return STARTSCREEN_GAMESTATE;
 }
 uint8_t End_StartScreenGameState(){

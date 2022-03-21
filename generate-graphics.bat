@@ -28,6 +28,8 @@ SET PNG2ASSET=%GBDK_HOME%\bin\png2asset.exe
 %PNG2ASSET% graphics\Font.png -c source\gen\graphics\Font.c -map -use_map_attributes -noflip  -keep_palette_order
 %PNG2ASSET% graphics\StartScreen.png -c source\gen\graphics\StartScreen.c -map -use_map_attributes -noflip  -keep_palette_order
 %PNG2ASSET% graphics\MenuScreen.png -c source\gen\graphics\MenuScreen.c -map -use_map_attributes -noflip  -keep_palette_order
+%PNG2ASSET% graphics\PlaneScreen.png -c source\gen\graphics\PlaneScreen.c -map -use_map_attributes -noflip  -keep_palette_order
+%PNG2ASSET% graphics\StageText.png -c source\gen\graphics\StageText.c -map -use_map_attributes -noflip  -keep_palette_order
 
 @echo off
 

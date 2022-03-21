@@ -15,6 +15,9 @@
 
 
 uint8_t currentFormationIndex=0;
+uint8_t previousMax=0;
+int16_t rolls;
+int16_t bonus;
 
 Formation* (*currentLevel)[];
 
@@ -54,10 +57,8 @@ void HandleWindowCutoff(){
 
 }
 
-
-const palette_color_t AllWhite[4] = {
-	RGB8(255,255, 255),RGB8(255,255, 255),RGB8(255,255, 255),RGB8(255,255, 255)
-};
+// Used for enemies flashing
+const palette_color_t AllWhite[4] = { RGB8(255,255, 255),RGB8(255,255, 255),RGB8(255,255, 255),RGB8(255,255, 255) };
 
 uint8_t Start_GameplayGameState(){
 
@@ -96,10 +97,9 @@ uint8_t Start_GameplayGameState(){
 
 
     VBK_REG=1;fill_win_rect(0,0,32,32,0);
-    VBK_REG=1;fill_win_rect(0,0,32,32,0);
+    VBK_REG=0;fill_win_rect(0,0,32,32,0);
     drawOnBackground=FALSE;DrawTextWithPalette(1,0,"1P",1);
     drawOnBackground=FALSE;DrawNumber(3,0,123456,7);
-    
     drawOnBackground=FALSE;DrawNumber(12,0,88,2);
 
     // Show the mini player plane on the UI
@@ -111,6 +111,9 @@ uint8_t Start_GameplayGameState(){
     VBK_REG=0;set_win_tile_xy(11,0,41);
 
     drawOnBackground=FALSE;DrawNumber(17,0,1,2);
+
+    rolls=0;
+    bonus=0;
 
     playerPlaneX=80<<4;
     playerPlaneY=80<<4;
@@ -124,7 +127,6 @@ uint8_t Start_GameplayGameState(){
 
     return TRUE;
 }
-uint8_t previousMax=0;
 uint8_t Update_GameplayGameState(){
 
     scroll_bkg(0,-1);
@@ -149,11 +151,13 @@ uint8_t Update_GameplayGameState(){
     maxSprite=UpdateAllBullets(maxSprite);
     maxSprite =UpdateAllEnemies(maxSprite);
 
+    // Save how many sprites we used
     uint8_t currentMax=maxSprite;
 
+    // If used less sprites than the previous time
     if(currentMax<previousMax){
         
-        
+        // Move the remainder offscreen
         for(maxSprite;maxSprite<previousMax;maxSprite++){
             move_sprite(maxSprite,0,0);
         }
@@ -161,30 +165,6 @@ uint8_t Update_GameplayGameState(){
     }
 
     previousMax=currentMax;
-
-    // If enemies on screen is zero
-    if(enemiesOnScreen==0){
-
-        //Get which formation to spawn enemies for
-        Formation* formation = (*currentLevel)[currentFormationIndex];
-
-        // If we are not on the last formation
-        if(formation!=0){
-
-            // Spawn an enemy for each path in theformation
-            for(uint8_t i=0;i<formation->count;i++){
-
-                uint8_t path = formation->paths[i].path;
-                
-                // Spawn a new enemy
-                SpawnEnemy( formation->type, path, formation->paths[i].position, formation->paths[i].offsetX, formation->paths[i].offsetY, formation->paths[i].delay);
-            }
-
-            // Move on to the next formation
-            currentFormationIndex++;
-            
-        }
-    }
 
 
     return GAMEPLAY_GAMESTATE;

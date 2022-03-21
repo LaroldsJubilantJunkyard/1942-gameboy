@@ -14,6 +14,9 @@ Bullet bullets[MAX_NUMBER_BULLETS];
 
 int16_t minX,minY,maxX,maxY;
 
+uint16_t bulletsFired;
+uint16_t bulletsMissed;
+
 void ReSortBullets(){
     
     Bullet bulletsTemp[MAX_NUMBER_BULLETS];
@@ -41,6 +44,7 @@ void SpawnBullet(int16_t x, int16_t y){
             bullets[i].x=x;
             bullets[i].y=y;
             bullets[i].active=TRUE;
+            bulletsFired++;
             break;
         }
     }
@@ -49,12 +53,16 @@ void SpawnBullet(int16_t x, int16_t y){
 
 void SetupBullets(){
 
+    bulletsFired=0;
+    bulletsMissed=0;
+
     for(uint8_t i=0;i<MAX_NUMBER_BULLETS;i++)bullets[i].active=FALSE;
 }
 
 uint8_t UpdateBullet(Bullet* bullet, uint8_t startingSprite){
     bullet->y-=100;
     if(bullet->y<-128){
+        bulletsMissed++;
         bullet->active=FALSE;
         return 0;
     }else{

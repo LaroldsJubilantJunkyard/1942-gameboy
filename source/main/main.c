@@ -38,7 +38,7 @@ void main(void){
 
 
     uint8_t currenGameState=GAMEFIRSTLOAD;
-    uint8_t nextGameState=GAMEPLAY_GAMESTATE;
+    uint8_t nextGameState=NEXTLEVEL_GAMESTATE;
 
     while(TRUE){
 
