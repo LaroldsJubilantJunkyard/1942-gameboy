@@ -4,7 +4,8 @@
 #include "graphics/PlayerPlane.h"
 #include "graphics/Bullets.h"
 #include "graphics/SmallEnemyPlane.h"
-#include "graphics/MediumEnemyPlane.h"
+#include "graphics/SmallExplosion.h"
+#include "graphics/MediumExplosion.h"
 #include "graphics/PlayerPlaneMini.h"
 #include "bullets.h"
 #include "common.h"
@@ -43,6 +44,7 @@ void SpawnBullet(int16_t x, int16_t y){
         if(!bullets[i].active){
             bullets[i].x=x;
             bullets[i].y=y;
+            bullets[i].explode=-1;
             bullets[i].active=TRUE;
             bulletsFired++;
             break;
@@ -60,20 +62,32 @@ void SetupBullets(){
 }
 
 uint8_t UpdateBullet(Bullet* bullet, uint8_t startingSprite){
-    bullet->y-=100;
-    if(bullet->y<-128){
-        bulletsMissed++;
-        bullet->active=FALSE;
-        return 0;
+    if(bullet->explode==-1){
+            
+        bullet->y-=100;
+        if(bullet->y<-128){
+            bulletsMissed++;
+            bullet->active=FALSE;
+            return 0;
+        }
+    
+        return move_metasprite(Bullets_metasprites[0],BULLETS_TILES_START,startingSprite,(bullet->x>>4),(bullet->y>>4));
     }else{
 
-        //maxX=MAX(bullets[i].x+128,maxX);
-        //maxY=MAX(bullets[i].y+128,maxY);
-       // minX=MIN(bullets[i].x-128,minX);
-        //minY=MIN(bullets[i].y-128,minY);
- 
+        if((bullet->explode>>4)<5){
+
+            uint8_t n= move_metasprite(SmallExplosion_metasprites[bullet->explode>>4],SMALL_EXPLOSION_TILES_START,startingSprite,(bullet->x>>4),(bullet->y>>4)+8);
+
+            bullet->explode+=4;
+
+            return n;
+        }else{
+            
+            bullet->active=FALSE;
+            return 0;
+        }
+        
     }
-    return move_metasprite(Bullets_metasprites[0],BULLETS_START,startingSprite,(bullet->x>>4),(bullet->y>>4));
 }
 
 uint8_t UpdateAllBullets(uint8_t startingSprite){

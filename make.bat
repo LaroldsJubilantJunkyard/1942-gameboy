@@ -21,27 +21,22 @@ SET "COMPILE_OBJECT_FILES="
 
 call generate-graphics.bat
 
-
 :: loop for all files in the default source folder
 FOR /R "source/gen/" %%X IN (*.c) DO (
-    echo Compiling %%~nX ...
-    %LCC_COMPILE% bin/gen_%%~nX.o %%X
-    SET "COMPILE_OBJECT_FILES=bin/gen_%%~nX.o !COMPILE_OBJECT_FILES!"
+    SET "COMPILE_OBJECT_FILES=%%X !COMPILE_OBJECT_FILES!"
 
 )
 
 
 :: loop for all files in the default source folder
 FOR /R "source/main/" %%X IN (*.c) DO (
-    echo Compiling %%~nX ...
-    %LCC_COMPILE% bin/%%~nX.o %%X
-    SET "COMPILE_OBJECT_FILES=bin/%%~nX.o !COMPILE_OBJECT_FILES!"
+    SET "COMPILE_OBJECT_FILES=%%X !COMPILE_OBJECT_FILES!"
 
 )
 
 
 :: Compile a .gb file from the compiled .o files
-%LCC_COMPILE_BASE% -Wm-yc -o dist/1942.gb !COMPILE_OBJECT_FILES!
+%LCC_COMPILE_BASE% -Wm-yc -Wl-yo2 -Wl-yt3 -o dist/1942.gb !COMPILE_OBJECT_FILES!
 
 endlocal
 

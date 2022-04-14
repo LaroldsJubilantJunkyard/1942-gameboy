@@ -10,8 +10,9 @@ typedef struct EnemyPath{
 }EnemyPath;
 
 
-extern const EnemyPath AllPaths[];
+extern  EnemyPath AllPaths[];
 
+#define NUMBER_OF_PATHS 16
 
 #define PATH_Setup_Left_FlyStraight 0
 #define PATH_Setup_Bottom_FlyStraight 1

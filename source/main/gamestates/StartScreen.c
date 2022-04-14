@@ -1,3 +1,5 @@
+#pragma bank 1
+
 #include "gb/gb.h"
 #include "gb/metasprites.h"
 #include "common.h"
@@ -92,6 +94,9 @@ uint8_t Start_StartScreenGameState(){
 
     HIDE_WIN;
     move_bkg(0,0);
+    uint8_t _previous_bank = _current_bank;
+
+    SWITCH_ROM_MBC1(1);
     set_bkg_data(0,StartScreen_TILE_COUNT,StartScreen_tiles);
     set_bkg_palette(0,5,StartScreen_palettes);
 
@@ -101,6 +106,11 @@ uint8_t Start_StartScreenGameState(){
 
     set_sprite_data(0,Year_TILE_COUNT,Year_tiles);
     set_sprite_palette(0,1,Year_palettes);
+
+    
+    SWITCH_ROM_MBC1(_previous_bank);
+
+    currentLevel=0;
     
     
 

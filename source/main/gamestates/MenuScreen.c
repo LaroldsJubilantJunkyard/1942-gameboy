@@ -1,8 +1,13 @@
+#pragma bank 1
+
 #include "gb/gb.h"
 #include "common.h"
 #include "graphics/Font.h"
 #include "graphics/MenuScreen.h"
 
+
+extern uint8_t currentLevel;
+extern int8_t retries;
 
 uint8_t Start_MenuScreenGameState(){
     HIDE_WIN;
@@ -22,6 +27,11 @@ uint8_t Start_MenuScreenGameState(){
     return TRUE;
 }
 uint8_t Update_MenuScreenGameState(){
+    if(((joypadCurrent & J_A)&& !(joypadPrevious & J_A))||((joypadCurrent &J_START)&&!(joypadPrevious&J_START))){
+        retries=3;
+        currentLevel=0;
+        return NEXTLEVEL_GAMESTATE;
+    }
     return MENUSCREEN_GAMESTATE;
 }
 uint8_t End_MenuScreenGameState(){

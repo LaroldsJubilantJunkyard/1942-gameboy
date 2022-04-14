@@ -1,3 +1,5 @@
+#pragma bank 1
+
 #include "gb/gb.h"
 #include "gb/metasprites.h"
 #include "common.h"
@@ -15,7 +17,6 @@ uint8_t Start_LaroldsJubilantJunkyardGameState(){
     SHOW_BKG;
 
     timer=0;
-
 
 
     set_bkg_data(0,LaroldsJubilantJunkyard_TILE_COUNT,LaroldsJubilantJunkyard_tiles);

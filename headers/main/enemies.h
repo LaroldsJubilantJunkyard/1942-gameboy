@@ -55,8 +55,7 @@ typedef struct EnemyPlane{
     uint8_t frame;
     uint8_t path;
     uint8_t flash;
-    uint8_t collisionBoxWidth, collisionBoxHeight;
-    uint8_t collisionBoxX, collisionBoxY;
+    uint16_t explode;
 } EnemyPlane;
 
 extern uint8_t enemiesOnScreen;
@@ -67,7 +66,7 @@ extern EnemyPlane enemies[MAX_NUMBER_ENEMIES_ON_SCREEN];
 
 void SetupEnemies();
 void SortEnemies();
-uint8_t UpdateAllEnemies(uint8_t startingSprite);
+uint8_t UpdateAllEnemies(uint8_t startingSprite, uint8_t completed);
 void SpawnEnemy(uint8_t enemyType,uint8_t path,uint8_t position,int16_t offsetX, int16_t offsetY,uint16_t delay);
 
 #endif

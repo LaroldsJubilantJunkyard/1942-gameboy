@@ -1,10 +1,13 @@
 #ifndef BULLETS_HEADER
 #define BULLETS_HEADER set
 
+#include <gb/gb.h>
+
 typedef struct Bullet{
 
     int16_t x,y;
     uint8_t active;
+    int16_t explode;
 
 }Bullet;
 

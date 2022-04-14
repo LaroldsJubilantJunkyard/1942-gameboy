@@ -1,3 +1,5 @@
+#pragma bank 1
+
 #include "gb/gb.h"
 #include "common.h"
 #include "graphics/Font.h"
@@ -24,7 +26,6 @@ uint8_t Start_CopyrightGameState(){
     
     drawOnBackground=TRUE;DrawText(2,7,"Free Source Code");
     drawOnBackground=TRUE;DrawText(2,8,"Online on Github");
-
     
     drawOnBackground=TRUE;DrawText(3,10,"Free Tutorial");
     drawOnBackground=TRUE;DrawText(2,11,"On my Website!");
