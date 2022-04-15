@@ -4,6 +4,8 @@
 #include "graphics/PlaneScreen.h"
 #include "graphics/StageText.h"
 
+extern uint8_t currentLevel;
+
 void SetupStageScreen(){
     
 
@@ -19,8 +21,8 @@ void SetupStageScreen(){
     VBK_REG=0;set_bkg_based_tiles(0,0,20,18,PlaneScreen_map,Font_TILE_COUNT);
 
 
-    uint8_t digit1=1;
-    uint8_t digit2=2;
+    uint8_t digit1=((currentLevel+1)/10)%10;
+    uint8_t digit2=(currentLevel+1)%10;
 
     uint8_t digit1Tiles[4];
     uint8_t digit1TilesAttributes[4];
@@ -65,7 +67,7 @@ uint8_t Start_NextLevelGameState(){
     return TRUE;
 }
 uint8_t Update_NextLevelGameState(){
-    if((joypadCurrent &J_A)||(joypadCurrent&J_START))return GAMEPLAY_GAMESTATE;
+    if(((joypadCurrent &J_A)&&!(joypadPrevious&J_A))||((joypadCurrent&J_START)&&!(joypadPrevious&J_START)))return GAMEPLAY_GAMESTATE;
     return NEXTLEVEL_GAMESTATE;
 }
 uint8_t End_NextLevelGameState(){

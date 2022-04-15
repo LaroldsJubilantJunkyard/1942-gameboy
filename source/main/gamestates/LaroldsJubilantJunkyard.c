@@ -31,6 +31,7 @@ uint8_t Update_LaroldsJubilantJunkyardGameState(){
 
     timer++;
     if(timer>=200)return STARTSCREEN_GAMESTATE;
+    if(((joypadCurrent &J_A)&&!(joypadPrevious&J_A))||((joypadCurrent&J_START)&&!(joypadPrevious&J_START)))return STARTSCREEN_GAMESTATE;
 
     return LAROLDSJUBILANTJUNKYARD_GAMESTATE;
 }

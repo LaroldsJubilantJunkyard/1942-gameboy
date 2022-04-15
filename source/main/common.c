@@ -9,6 +9,7 @@ int16_t playerPlaneX, playerPlaneY;
 
 uint8_t drawOnBackground=TRUE;
     
+    
 void DrawTextWithPalette(uint8_t x, uint8_t y, unsigned char *text,uint8_t palette ){
 
     uint8_t i=0;
@@ -55,7 +56,8 @@ void DrawTextWithPalette(uint8_t x, uint8_t y, unsigned char *text,uint8_t palet
 }
 
 
-void DrawNumber(uint8_t x,uint8_t y, uint32_t number,uint8_t digits){
+
+void DrawNumberWithPalette(uint8_t x,uint8_t y, uint32_t number,uint8_t digits,uint8_t palette){
 	
     unsigned char buffer[8]="00000000";
 
@@ -72,17 +74,31 @@ void DrawNumber(uint8_t x,uint8_t y, uint32_t number,uint8_t digits){
     // Add some leading zeroes
     // uitoa will not do this for us
     // Increase the VRAM address each iteration to move to the next tile
-    for(uint8_t i=0;i<digits-len;i++)        
+    for(uint8_t i=0;i<digits-len;i++){
+        VBK_REG=1 ;
+        set_vram_byte(vramAddr,palette);
+        VBK_REG=0 ;
         set_vram_byte(vramAddr++,27);
+    }
         
     // Draw our number
     // Increase the VRAM address each iteration to move to the next tile
-    for(uint8_t i=0;i<len;i++)        
+    for(uint8_t i=0;i<len;i++){
+        VBK_REG=1 ;
+        set_vram_byte(vramAddr,palette);
+        VBK_REG=0 ;
         set_vram_byte(vramAddr++,(buffer[i]-'0')+27);
+    }
 
 
     drawOnBackground=FALSE;
 }
+
+void DrawNumber(uint8_t x,uint8_t y, uint32_t number,uint8_t digits){
+	
+    DrawNumberWithPalette(x,y,number,digits,0);
+}
+
 void DrawText(uint8_t x, uint8_t y, unsigned char *text){
     DrawTextWithPalette(x,y,text,255);
 }

@@ -111,11 +111,14 @@ uint8_t Start_StartScreenGameState(){
 uint8_t Update_StartScreenGameState(){
     
     scrollValue+=10;
-    if((joypadCurrent & J_A) ||(joypadCurrent& J_START))return NEXTLEVEL_GAMESTATE;
+    if(((joypadCurrent &J_A)&&!(joypadPrevious&J_A))||((joypadCurrent&J_START)&&!(joypadPrevious&J_START)))return NEXTLEVEL_GAMESTATE;
     return STARTSCREEN_GAMESTATE;
 }
 uint8_t End_StartScreenGameState(){
     disable_interrupts();
+
+    remove_LCD(HandleBackgroundScrolling);
     STAT_REG=0;
+    enable_interrupts();
     return TRUE;
 }

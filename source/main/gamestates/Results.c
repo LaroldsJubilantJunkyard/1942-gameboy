@@ -1,7 +1,7 @@
 #include "gb/gb.h"
 #include "common.h"
 
-
+extern uint8_t currentLevel;
 extern uint16_t bulletsFired;
 extern uint16_t bulletsMissed;
 extern int16_t rolls;
@@ -32,9 +32,12 @@ uint8_t Start_ResultsGameState(){
     return TRUE;
 }
 uint8_t Update_ResultsGameState(){
-    if((joypadCurrent &J_A)||(joypadCurrent&J_START))return NEXTLEVEL_GAMESTATE;
+    if(((joypadCurrent &J_A)&&!(joypadPrevious&J_A))||((joypadCurrent&J_START)&&!(joypadPrevious&J_START)))return NEXTLEVEL_GAMESTATE;
     return RESULTS_GAMESTATE;
 }
 uint8_t End_ResultsGameState(){
+
+    // Proceed to the next level
+    currentLevel++;
     return TRUE;
 }

@@ -37,6 +37,10 @@
 #define MIDDLE 1
 #define BOTTOM_OR_RIGHT 2
 
+#define NORMAL_MODE 0
+#define TRACK_MODE 1
+#define ROTATE_MODE 2
+
 #define FLYSTRAIGHT 0
 #define FLYTOWARDS_DIRECTLY 1
 #define DELAYED_FLYTOWARDS 2
@@ -46,8 +50,10 @@
 #define MAX_NUMBER_ENEMIES_ON_SCREEN 10
 typedef struct EnemyPlane{
     uint16_t enemyDirection;
-    uint16_t delay;
-    uint8_t startDirection;
+    uint16_t delay,activeDelay;
+    int8_t turnDirection;
+    uint8_t mode;
+    uint16_t turnRemaining;
     uint8_t enemyType,active;
     int16_t velocityX,velocityY;
     int16_t x,y;
@@ -55,8 +61,6 @@ typedef struct EnemyPlane{
     uint8_t frame;
     uint8_t path;
     uint8_t flash;
-    uint8_t collisionBoxWidth, collisionBoxHeight;
-    uint8_t collisionBoxX, collisionBoxY;
 } EnemyPlane;
 
 extern uint8_t enemiesOnScreen;
@@ -67,7 +71,7 @@ extern EnemyPlane enemies[MAX_NUMBER_ENEMIES_ON_SCREEN];
 
 void SetupEnemies();
 void SortEnemies();
-uint8_t UpdateAllEnemies(uint8_t startingSprite);
-void SpawnEnemy(uint8_t enemyType,uint8_t path,uint8_t position,int16_t offsetX, int16_t offsetY,uint16_t delay);
+uint8_t UpdateAllEnemies(uint8_t startingSprite,uint8_t completed);
+EnemyPlane* SpawnEnemy();
 
 #endif

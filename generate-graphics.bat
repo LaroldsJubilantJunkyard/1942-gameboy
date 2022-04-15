@@ -11,13 +11,14 @@ SET PNG2ASSET=%GBDK_HOME%\bin\png2asset.exe
 
 @echo on
 
-%PNG2ASSET% graphics\Bullets.png -c source/gen/graphics/Bullets.c  -sw 8 -sh 8 -spr8x16 -keep_palette_order
+%PNG2ASSET% graphics\Bullets.png -c source/gen/graphics/Bullets.c  -sw 8 -sh 16 -px 0 -py 0 -spr8x16 -keep_palette_order
 
 %PNG2ASSET% graphics\PlayerPlane.png -c source/gen/graphics/PlayerPlane.c  -sw 24 -sh 16 -px 0 -py 0 -spr8x16 -keep_palette_order
 
 
-%PNG2ASSET% graphics\SmallEnemyPlane.png -c source/gen/graphics/SmallEnemyPlane.c  -sw 16 -sh 16 -spr8x16 -keep_palette_order
-%PNG2ASSET% graphics\MediumEnemyPlane.png -c source/gen/graphics/MediumEnemyPlane.c  -sw 24 -sh 48 -spr8x16 -keep_palette_order
+%PNG2ASSET% graphics\SmallEnemyPlane.png -c source/gen/graphics/SmallEnemyPlane.c  -sw 16 -sh 16 -px 0 -py 0 -spr8x16 -keep_palette_order
+%PNG2ASSET% graphics\SmallExplosion.png -c source/gen/graphics/SmallExplosion.c  -sw 8 -sh 16 -px 0 -py 0 -spr8x16 -keep_palette_order
+%PNG2ASSET% graphics\MediumExplosion.png -c source/gen/graphics/MediumExplosion.c  -sw 16 -sh 16 -px 0 -py 0 -spr8x16 -keep_palette_order
 
 %PNG2ASSET% graphics\Year.png -c source/gen/graphics/Year.c  -sw 48 -sh 16 -px 0 -py 0 -spr8x16 -keep_palette_order
 %PNG2ASSET% graphics\LaroldsJubilantJunkyard.png -c source/gen/graphics/LaroldsJubilantJunkyard.c -map -use_map_attributes -noflip  -keep_palette_order

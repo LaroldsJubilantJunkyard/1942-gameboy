@@ -5,10 +5,10 @@ typedef struct Bullet{
 
     int16_t x,y;
     uint8_t active;
+    int8_t explode;
 
 }Bullet;
 
-#define BULLETS_START SmallEnemyPlane_TILE_COUNT+PlayerPlane_TILE_COUNT+MediumEnemyPlane_TILE_COUNT
 #define MAX_NUMBER_BULLETS 5
 
 

@@ -38,6 +38,7 @@ uint8_t Update_CopyrightGameState(){
 
     timer++;
     if(timer>=200)return LAROLDSJUBILANTJUNKYARD_GAMESTATE;
+    if(((joypadCurrent &J_A)&&!(joypadPrevious&J_A))||((joypadCurrent&J_START)&&!(joypadPrevious&J_START)))return LAROLDSJUBILANTJUNKYARD_GAMESTATE;
 
     return COPYRIGHT_GAMESTATE;
 }
