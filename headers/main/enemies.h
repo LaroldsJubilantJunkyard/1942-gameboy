@@ -61,6 +61,7 @@ typedef struct EnemyPlane{
     uint8_t frame;
     uint8_t path;
     uint8_t flash;
+    struct EnemyPlane* next;
 } EnemyPlane;
 
 extern uint8_t enemiesOnScreen;

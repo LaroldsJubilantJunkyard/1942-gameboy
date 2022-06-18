@@ -9,6 +9,8 @@
 #include "graphics/SmallEnemyPlane.h"
 
 EnemyPlane enemies[MAX_NUMBER_ENEMIES_ON_SCREEN];
+EnemyPlane* firstEnemy=0;
+EnemyPlane* lastEnemy=0;
 uint8_t enemiesOnScreen=0;
 uint8_t lastCheck=0;
 
@@ -54,30 +56,55 @@ void SetupEnemies(){
     
     for(uint8_t i=0;i<MAX_NUMBER_ENEMIES_ON_SCREEN;i++){
         enemies[i].active=FALSE;
+        enemies[i].next=0;
     }
+    firstEnemy=0;
+    lastEnemy=0;
     enemiesOnScreen=0;
 }
 
-void SortEnemies(){
+void RecycleEnemy(EnemyPlane* enemyToBeRecycled){
+  
+
+    if(firstEnemy==enemyToBeRecycled){
+        firstEnemy=enemyToBeRecycled->next;
+    }
+
+    //Clear the last bullet
+    // We'll change it in the next for loop if necccssary
+    if(lastEnemy==enemyToBeRecycled)lastEnemy=0;
+
+    EnemyPlane* currentEnemy = firstEnemy;
+        
     
-    EnemyPlane enemiesTemp[MAX_NUMBER_ENEMIES_ON_SCREEN];
+    while(currentEnemy!=0){
+        
+        // If this is the bullet before us
+        if(currentEnemy->next==enemyToBeRecycled){
 
-    uint8_t i=0,activeCount=0;
+            // Pass on to the next one
+            currentEnemy->next=enemyToBeRecycled->next;
 
-    for(i=0;i<MAX_NUMBER_ENEMIES_ON_SCREEN;i++)enemiesTemp[i].active=FALSE;
+            // If we are the lasst bullt
+            if(lastEnemy==enemyToBeRecycled){
 
+                // Use the one before us
+                lastEnemy=currentEnemy;
+            }
 
-    for(i=0;i<MAX_NUMBER_ENEMIES_ON_SCREEN;i++){
-        if(enemies[i].active){
-            enemiesTemp[activeCount++]=enemies[i];
+            break;
         }
-    }
 
-    for(i=0;i<MAX_NUMBER_ENEMIES_ON_SCREEN;i++){
-        enemies[i]=enemiesTemp[i];
-    }
+        currentEnemy=currentEnemy->next;
 
+    }
+    enemyToBeRecycled->active=FALSE;
+    enemyToBeRecycled->next=0;
+
+   
 }
+
+
 
 EnemyPlane* SpawnEnemy(){
     
@@ -88,6 +115,10 @@ EnemyPlane* SpawnEnemy(){
             enemies[i].active=TRUE;
             enemies[i].health=3;
             enemies[i].flash=0;
+
+            if(firstEnemy==0)firstEnemy=&enemies[i];
+            if(lastEnemy!=0)lastEnemy->next=&enemies[i];
+            lastEnemy=&enemies[i];
 
 
             // Increase how many enemies we have on screeen
@@ -217,7 +248,7 @@ uint8_t UpdateSingleEnemy(EnemyPlane* enemy,uint8_t startSprite){
     
 
     if(!alive){
-        enemy->active=0;
+        RecycleEnemy(enemy);
         return 0;
     }else if(enemy->health<=0){
 
@@ -310,34 +341,23 @@ uint8_t UpdateAllEnemies(uint8_t startingSprite,uint8_t completed){
         //Spawn the next formation
         SpawnNextFormation();
     }
+
     
     enemiesOnScreen=0;
+
+    EnemyPlane* currentEnemy = firstEnemy;
     
-    uint8_t resort=FALSE;
+    while(currentEnemy!=0){
 
-    for(uint8_t i=0;i<MAX_NUMBER_ENEMIES_ON_SCREEN;i++){
+        // Increase our count of enemies on screen
+        enemiesOnScreen++;
 
-        // If this enemy is active
-        if(enemies[i].active){
+        // Update the enemy and the starting sprite
+        startingSprite+=UpdateSingleEnemy(currentEnemy,startingSprite);
 
-            // Update the enemy and the starting sprite
-            startingSprite+=UpdateSingleEnemy(&enemies[i],startingSprite);
+        currentEnemy=currentEnemy->next;
 
-            // If this enemy is no longer active
-            // We need to resort the array
-            if(!enemies[i].active){
-                resort=TRUE;
-            }else{
-                
-                // Increase our count of enemies on screen
-                enemiesOnScreen++;
-            }
-        }else{
-            break;
-        }
     }
-    if(resort){
-        SortEnemies();
-    }
+   
     return startingSprite;
 }
