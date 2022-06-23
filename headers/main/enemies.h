@@ -60,6 +60,7 @@ typedef struct EnemyPlane{
     int8_t health;
     uint8_t frame;
     uint8_t path;
+    uint8_t lastCheck;
     uint8_t flash;
     struct EnemyPlane* next;
 } EnemyPlane;

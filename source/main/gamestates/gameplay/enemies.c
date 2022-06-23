@@ -12,7 +12,6 @@ EnemyPlane enemies[MAX_NUMBER_ENEMIES_ON_SCREEN];
 EnemyPlane* firstEnemy=0;
 EnemyPlane* lastEnemy=0;
 uint8_t enemiesOnScreen=0;
-uint8_t lastCheck=0;
 
 extern uint8_t currentPathIndex,currentLevel,enemySpawnDelay;
 
@@ -27,27 +26,9 @@ const int16_t Vertical[]={0,0,0,-1,-1,-1,-1,-2,-2,-2,-2,-3,-3,-3,-3,-4,-4,-4,-4,
 const uint8_t Frames[]={0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8,8};
 
 
-
-int16_t baseOffsetDirs[4][2]= {
-{0,1},
-{1,0},
-{0,1},
-{1,0},
-};
-
-uint16_t baseDirections[4]= {
-FACING_RIGHT<<1,
-FACING_DOWN<<1,
-FACING_LEFT<<1,
-FACING_UP<<1
-};
-
-int16_t basePositions[4][2]= {
-{-8,72},
-{80,-8},
-{168,72},
-{80,152}
-};
+const int16_t baseOffsetDirs[4][2]= {{0,1},{1,0},{0,1},{1,0}};
+const uint16_t baseDirections[4]= {FACING_RIGHT<<1,FACING_DOWN<<1,FACING_LEFT<<1,FACING_UP<<1};
+const int16_t basePositions[4][2]= {{-8,72},{80,-8},{168,72},{80,152}};
 
 void UpdateScore();
 void UpdatePlayerHealth();
@@ -64,8 +45,8 @@ void SetupEnemies(){
 }
 
 void RecycleEnemy(EnemyPlane* enemyToBeRecycled){
-  
 
+    // Update our pointer
     if(firstEnemy==enemyToBeRecycled){
         firstEnemy=enemyToBeRecycled->next;
     }
@@ -115,6 +96,7 @@ EnemyPlane* SpawnEnemy(){
             enemies[i].active=TRUE;
             enemies[i].health=3;
             enemies[i].flash=0;
+            enemies[i].lastCheck=0;
 
             if(firstEnemy==0)firstEnemy=&enemies[i];
             if(lastEnemy!=0)lastEnemy->next=&enemies[i];
@@ -157,33 +139,62 @@ uint8_t move_metasprite_props(const metasprite_t* current, uint8_t base_tile, ui
 }
 
 uint8_t CollisionTestAgainstBullets(EnemyPlane* enemy){
-     uint8_t n=lastCheck+3;
+
+    if(firstBullet==0)return 1;
+
+    // Check 3 enemies at a time
+    uint8_t lastEnemyIndexToCheck=MIN(MAX_NUMBER_ENEMIES_ON_SCREEN,enemy->lastCheck+3);
 
     uint8_t alive = 1;
 
-    for(lastCheck;lastCheck<n;lastCheck++){
-        if(bullets[lastCheck].active){
-            if(bullets[lastCheck].explode>=0)continue;
-            int16_t yd =bullets[lastCheck].y-enemy->y;
+    for(enemy->lastCheck;enemy->lastCheck<lastEnemyIndexToCheck; enemy->lastCheck++){
+
+        // if the current enemy is active
+        if(bullets[enemy->lastCheck].active){
+
+            // If this enemy is exploding, skip it
+            if(bullets[enemy->lastCheck].explode>=0)continue;
+
+            // Check for collision on the y-axis
+            int16_t yd =bullets[enemy->lastCheck].y-enemy->y;
             if(yd>128)continue;
             if(yd<-128)continue;
 
-            int16_t xd =bullets[lastCheck].x-enemy->x;
+            // Check for collision on the x-axis
+            int16_t xd =bullets[enemy->lastCheck].x-enemy->x;
             if(xd>128)continue;
             if(xd<-128)continue;
+
+            
+            // Decrease enemy health
             enemy->health--;
+
+            // Increase how many enemies were shot if the health reaches zero
             if(enemy->health==0){
                 enemiesShot++;
             }
+
+            // Make the enemy flash
             enemy->flash=3;
-            bullets[lastCheck].explode=0;
+
+            // Set our bullet to explode
+            bullets[enemy->lastCheck].explode=0;
+
+
+            // Incvrease and update score
             score+=50;
             UpdateScore();
 
+
+
         }else{
-            lastCheck=0;
-            break;
+
+            lastEnemyIndexToCheck=MIN(MAX_NUMBER_ENEMIES_ON_SCREEN,lastEnemyIndexToCheck+1);
         }
+    }
+
+    if(enemy->lastCheck>=MAX_NUMBER_ENEMIES_ON_SCREEN){
+        enemy->lastCheck=0;
     }
     return 1;
 }
